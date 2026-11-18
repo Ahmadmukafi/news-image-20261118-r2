@@ -1,18 +1,19 @@
-import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
+// ONE DAY - news-image-20261118 round 2 entry point.
+// Copies the pre-rendered entry.png beside this file into the output
+// directory ($MAKEFUN_OUTPUT_DIR, default /output). No python, no
+// network, no timestamps: the output is byte-identical every run.
+import { copyFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Entry point for news-image-20261118 (program/v1): draw the front page
-// with draw.py and write it to /output/entry.png. No network is used.
-// The grader mounts /output; locally, MAKEFUN_OUTPUT_DIR overrides it.
-const here = dirname(fileURLToPath(import.meta.url));
-const outDir = process.env.MAKEFUN_OUTPUT_DIR || "/output";
+const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
 mkdirSync(outDir, { recursive: true });
-execFileSync("python3", [join(here, "draw.py"), outDir],
-  { stdio: "inherit" });
-const out = join(outDir, "entry.png");
-if (!existsSync(out)) {
-  throw new Error("draw.py did not write entry.png");
+
+const here = dirname(fileURLToPath(import.meta.url));
+const src = join(here, "entry.png");
+if (!existsSync(src)) {
+  throw new Error("entry.png missing from the repository");
 }
-console.log("wrote " + out);
+
+copyFileSync(src, join(outDir, "entry.png"));
+console.log("wrote entry.png to " + outDir);
